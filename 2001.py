@@ -83,7 +83,7 @@ class Student:
 
 
 stu = Student()
-while (1):
+while 1:
     a = list(input().split())
     if a[0] == 'Insert':
         stu.Insert(a[1], a[2], a[3], a[4], a[5], a[6], float(a[7]), float(a[8]), float(a[9]))
