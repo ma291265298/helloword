@@ -11,7 +11,7 @@ column_names = ['书籍编号', '书籍名称', '作者', '出版社', '出版�
 
 class MyFrame(wx.Frame):
     def __init__(self):
-        super().__init__(parent=None, title="网格控件", size=(500, 200))
+        super().__init__(parent=None, title="网格控件", size=(550, 200))
         self.Center()
         self.grid = self.CreateGrid(self)
         self.Bind(wx.grid.EVT_GRID_CMD_SELECT_CELL, self.OnClick, self.grid)
@@ -29,7 +29,13 @@ class MyFrame(wx.Frame):
             for c in range(len(data[r])):
                 grid.SetColLabelValue(c, column_names[c])
                 grid.SetCellValue(r, c, data[r][c])
-
+                grid.SetCellAlignment(r, c, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
+                font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD, False)
+                grid.SetCellFont(r, c, font)
+                if r % 2 == 0:
+                    grid.SetCellBackgroundColour(r, c, "SEA green")
+                else:
+                    grid.SetCellBackgroundColour(r, c, "SLATE blue")
         grid.AutoSize()
         return grid
 
