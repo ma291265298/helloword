@@ -12,12 +12,15 @@ class MyFrame(wx.Frame):
         pic = wx.Image('test.jpg', wx.BITMAP_TYPE_JPEG).Rescale(40, 40).ConvertToBitmap()
         btn3 = wx.BitmapButton(panel, 3, pic)
 
-        gs = wx.GridSizer(4, 1, 0, 0)
+        gs = wx.GridSizer(1, 1, 0, 0)
 
-        gs.Add(self.st, flag=wx.ALIGN_CENTER)
-        gs.Add(btn1,  flag=wx.EXPAND)
-        gs.Add(btn2, flag=wx.EXPAND)
-        gs.Add(btn3, flag=wx.EXPAND)
+        box = wx.BoxSizer(wx.VERTICAL)
+        box.Add(self.st, proportion=0, flag=wx.ALL | wx.ALIGN_CENTER, border=20)
+        box.Add(btn1, proportion=1, flag=wx.EXPAND | wx.ALL)
+        box.Add(btn2, proportion=1, flag=wx.EXPAND | wx.ALL)
+        box.Add(btn3, proportion=2, flag=wx.EXPAND | wx.ALL)
+
+        gs.Add(box, flag=wx.EXPAND | wx.ALL)
 
         self.Bind(wx.EVT_BUTTON, self.onclick, id=1, id2=3)
 
@@ -30,7 +33,7 @@ class MyFrame(wx.Frame):
         elif eid == 2:
             self.st.SetLabelText('Hello World.2')
         else:
-            self.st.SetLabelText('3')
+            self.st.SetLabelText('Hello World.3')
 
 
 class App(wx.App):
