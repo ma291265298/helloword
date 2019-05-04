@@ -54,7 +54,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.grid.EVT_GRID_CMD_SELECT_CELL, self.OnClick, self.grid)
         self.Bind(wx.EVT_BUTTON, self.select, id=1)
         self.Bind(wx.EVT_BUTTON, self.add, id=2)
-        # self.Bind(wx.EVT_BUTTON, self.edit, id=3)
+        self.Bind(wx.EVT_BUTTON, self.edit, id=3)
         self.Bind(wx.EVT_BUTTON, self.delete1, id=4)
 
     def select(self, event):
@@ -148,6 +148,34 @@ class MyFrame(wx.Frame):
                 print('查询失败')
                 conn.rollback()
 
+    def edit(self, event):
+        self.frame3 = MyFrame3(parent=self.panel)
+        self.frame3.SetList(self.sedata)
+        self.frame3.ShowModal()
+        print(self.frame3.Getflag())
+        if not self.frame3.Getflag():
+            try:
+                with conn.cursor() as cursor:
+                    sql = 'select * from student '
+                    print(sql)
+                    cursor.execute(sql)
+                    conn.commit()
+                    data2 = list(cursor.fetchall())
+                    for i in range(self.grid.GetNumberRows()):
+                        self.grid.DeleteRows()
+                    for i in range(len(data2)):
+                        self.grid.InsertRows()
+                    for r in range(len(data2)):
+                        self.grid.SetRowSize(r, 50)
+                        for c in range(len(data2[r])):
+                            self.grid.SetCellValue(r, c, str(data2[r][c]))
+                            self.grid.SetCellAlignment(r, c, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
+                            font = wx.Font(15, wx.SWISS, wx.NORMAL, wx.BOLD, False)
+                            self.grid.SetCellFont(r, c, font)
+                    print('查询成功')
+            except pymysql.DatabaseError:
+                print('查询失败')
+                conn.rollback()
 
     def delete1(self, event):
         print(self.sedata)
@@ -171,9 +199,9 @@ class MyFrame(wx.Frame):
         print("列号:{0}".format(event.GetCol()))
         print(data[event.GetRow()])
         self.row = event.GetRow()
-        self.sedata=[]
+        self.sedata = []
         for i in range(self.grid.GetNumberCols()):
-          self.sedata.append(self.grid.GetTable().GetValue(event.GetRow(), i))
+            self.sedata.append(self.grid.GetTable().GetValue(event.GetRow(), i))
         # self.sedata = data[event.GetRow()]
         print(self.sedata)
         event.Skip()
@@ -282,8 +310,103 @@ class MyFrame2(wx.Dialog):
     def canel(self, event):
         self.flag = True
         self.Close()
+
     def Getflag(self):
         return self.flag
+
+
+class MyFrame3(wx.Dialog):
+    def __init__(self, parent):
+        super().__init__(parent=parent, size=(300, 500))
+        self.SetTitle('修改')
+        self.Center()
+        self.flag = False
+        panel2 = wx.Panel(self)
+
+        vbox2 = wx.BoxSizer(wx.VERTICAL)
+        btbox = wx.BoxSizer(wx.HORIZONTAL)
+
+        stnnumber = wx.StaticText(panel2, label='学号：')
+        self.tcnumber = wx.TextCtrl(panel2)
+
+        stname = wx.StaticText(panel2, label='姓名：')
+        self.tcname = wx.TextCtrl(panel2)
+
+        stsex = wx.StaticText(panel2, label='性别：')
+        self.tcsex = wx.TextCtrl(panel2)
+
+        stmath = wx.StaticText(panel2, label='数学：')
+        self.tcmath = wx.TextCtrl(panel2)
+
+        steng = wx.StaticText(panel2, label='英语：')
+        self.tceng = wx.TextCtrl(panel2)
+
+        stcom = wx.StaticText(panel2, label='计算机：')
+        self.tccom = wx.TextCtrl(panel2)
+
+        add = wx.Button(panel2, label='确认', id=11)
+        canel = wx.Button(panel2, label='取消', id=12)
+        btbox.Add(add, flag=wx.ALIGN_CENTER | wx.RIGHT, border=20)
+        btbox.Add(canel, flag=wx.ALIGN_CENTER | wx.LEFT, border=20)
+
+        fg = wx.FlexGridSizer(6, 2, 40, 30)
+        fg.AddMany([
+            stnnumber, (self.tcnumber, 3, wx.EXPAND),
+            stname, (self.tcname, 1, wx.EXPAND),
+            stsex, (self.tcsex, 1, wx.EXPAND),
+            stmath, (self.tcmath, 1, wx.EXPAND),
+            steng, (self.tceng, 1, wx.EXPAND),
+            stcom, (self.tccom, 1, wx.EXPAND),
+        ])
+        fg.AddGrowableCol(0, 1)
+        fg.AddGrowableCol(1, 30)
+        vbox2.Add(fg, 1, flag=wx.ALL | wx.ALIGN_CENTER, border=20)
+
+        vbox2.Add(btbox, flag=wx.ALIGN_CENTER | wx.ALL, border=10)
+        panel2.SetSizer(vbox2)
+
+        self.Bind(wx.EVT_BUTTON, self.confirm, id=11)
+        self.Bind(wx.EVT_BUTTON, self.canel, id=12)
+
+    def SetList(self, lis):
+        self.lis = lis
+        self.tcnumber.SetLabelText(self.lis[0])
+        self.tcname.SetLabelText(self.lis[1])
+        self.tcsex.SetLabelText(self.lis[2])
+        self.tcmath.SetLabelText(self.lis[3])
+        self.tceng.SetLabelText(self.lis[4])
+        self.tccom.SetLabelText(self.lis[5])
+
+    def confirm(self, event):
+        addata = []
+        addata.append(self.tcnumber.GetValue())
+        addata.append(self.tcname.GetValue())
+        addata.append(self.tcsex.GetValue())
+        addata.append(float(self.tcmath.GetValue()))
+        addata.append(float(self.tceng.GetValue()))
+        addata.append(float(self.tccom.GetValue()))
+        try:
+            with conn.cursor() as cursor:
+                sql = 'update student set number=%s , name=%s , sex=%s , math=%s , english=%s , computer=%s ' \
+                      'where number={}'.format(self.lis[0])
+                print(sql, addata)
+                cursor.execute(sql, addata)
+                conn.commit()
+                print('修改成功')
+                self.Close()
+
+        except pymysql.DatabaseError:
+            print('修改失败')
+            conn.rollback()
+        print(addata)
+
+    def canel(self, event):
+        self.flag = True
+        self.Close()
+
+    def Getflag(self):
+        return self.flag
+
 
 class App(wx.App):
     def OnInit(self):
